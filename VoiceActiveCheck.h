@@ -18,8 +18,8 @@ namespace webrtc {
     public:
         VoiceActiveCheck(int sample_rate_hz);
         ~VoiceActiveCheck();
-        
-        int isActiveVoice(int16_t *buf);
+
+        bool isActiveVoice(int16_t *buf);
         
         enum Likelihood {
             kLowestLikelihood,
@@ -30,12 +30,14 @@ namespace webrtc {
         };
         void set_likelihood(Likelihood likelihood);
         Likelihood likelihood();
+
+        void reset();
     private:
         class Vad;
         int frame_size_ms_  = 10;
         size_t frame_size_samples_ = 0;
         int sample_rate_hz_  = 0;
-        std::unique_ptr<Vad> vad_ ;
+        Vad *vad_ = nullptr;
         
         Likelihood likelihood_ = kLowestLikelihood;
     };

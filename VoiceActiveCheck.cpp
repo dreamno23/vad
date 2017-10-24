@@ -13,11 +13,17 @@ namespace webrtc {
     class VoiceActiveCheck::Vad {
     public:
         Vad() {
-            state_ = WebRtcVad_Create();
-            WebRtcVad_Init(state_);
+            reset();
         }
         ~Vad() {
-            WebRtcVad_Free(state_);
+            if (state_)
+                WebRtcVad_Free(state_);
+        }
+        void reset() {
+            if (state_)
+                WebRtcVad_Free(state_);
+            state_ = WebRtcVad_Create();
+            WebRtcVad_Init(state_);
         }
         VadInst* state() { return state_; }
     private:
@@ -26,25 +32,25 @@ namespace webrtc {
     
     VoiceActiveCheck::VoiceActiveCheck(int sample_rate_hz) {
         sample_rate_hz_ = sample_rate_hz;
-        std::unique_ptr<Vad> new_vad;
-        new_vad.reset(new Vad());
-        vad_.swap(new_vad);
+        vad_ = new VoiceActiveCheck::Vad();
         frame_size_samples_ =
         static_cast<size_t>(frame_size_ms_ * sample_rate_hz_) / 1000;
         //preset & reset
-        likelihood_ = (Likelihood)1001;
-        set_likelihood(kLowestLikelihood);
+        reset();
     }
     
     VoiceActiveCheck::~VoiceActiveCheck() {
-        
+        if (vad_) {
+            delete vad_;
+            vad_ = nullptr;
+        }
     }
-    
-    int VoiceActiveCheck:: isActiveVoice(int16_t *buf) {
+
+    bool VoiceActiveCheck:: isActiveVoice(int16_t *buf) {
         int vad_ret = WebRtcVad_Process(vad_->state(), sample_rate_hz_,
                                         buf,
                                         frame_size_samples_);
-        return vad_ret;
+        return vad_ret != 0;
     }
     
     void VoiceActiveCheck::set_likelihood(VoiceActiveCheck::Likelihood likelihood) {
@@ -74,6 +80,13 @@ namespace webrtc {
                 break;
         }
         WebRtcVad_set_mode(vad_->state(), mode);
+    }
+
+    void VoiceActiveCheck::reset() {
+        vad_->reset();
+        Likelihood hood = likelihood_;
+        likelihood_ = (Likelihood)1001;
+        set_likelihood(hood);
     }
 }
 

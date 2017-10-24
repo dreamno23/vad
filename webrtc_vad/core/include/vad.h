@@ -43,7 +43,7 @@ class Vad {
 };
 
 // Returns a Vad instance that's implemented on top of WebRtcVad.
-std::unique_ptr<Vad> CreateVad(Vad::Aggressiveness aggressiveness);
+//std::unique_ptr<Vad> CreateVad(Vad::Aggressiveness aggressiveness);
 
 }  // namespace webrtc
 
