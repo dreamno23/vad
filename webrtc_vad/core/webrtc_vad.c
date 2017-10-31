@@ -82,10 +82,6 @@ int WebRtcVad_Process(VadInst* handle, int fs, const int16_t* audio_frame,
   } else if (fs == 8000) {
     vad = WebRtcVad_CalcVad8khz(self, audio_frame, frame_length);
   }
-
-  if (vad > 0) {
-    vad = 1;
-  }
   return vad;
 }
 
